@@ -72,10 +72,79 @@ fit1 <- sampling(m,
               chains = 2,
               cores = 2)
 ```
+Show in New WindowClear OutputExpand/Collapse Output
+starting worker pid=22352 on localhost:11928 at 15:38:33.837
+starting worker pid=22366 on localhost:11928 at 15:38:34.021
+
+SAMPLING FOR MODEL 'stan-56cc1365f2fe' NOW (CHAIN 1).
+Chain 1: 
+Chain 1: Gradient evaluation took 4.9e-05 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.49 seconds.
+Chain 1: Adjust your expectations accordingly!
+Chain 1: 
+Chain 1: 
+Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
+Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
+Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
+Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
+Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
+Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
+Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
+Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
+
+SAMPLING FOR MODEL 'stan-56cc1365f2fe' NOW (CHAIN 2).
+Chain 2: 
+Chain 2: Gradient evaluation took 3.7e-05 seconds
+Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.37 seconds.
+Chain 2: Adjust your expectations accordingly!
+Chain 2: 
+Chain 2: 
+Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
+Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
+Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
+Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
+Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
+Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
+Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
+Chain 1: 
+Chain 1:  Elapsed Time: 0.124495 seconds (Warm-up)
+Chain 1:                0.092292 seconds (Sampling)
+Chain 1:                0.216787 seconds (Total)
+Chain 1: 
+Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
+Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
+Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
+Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
+Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
+Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
+Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
+Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
+Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
+Chain 2: 
+Chain 2:  Elapsed Time: 0.13124 seconds (Warm-up)
+Chain 2:                0.123725 seconds (Sampling)
+Chain 2:                0.254965 seconds (Total)
+Chain 2: 
 
 ```{r}
 print(fit1)
 ```
+Inference for Stan model: stan-56cc1365f2fe.
+2 chains, each with iter=1000; warmup=500; thin=1; 
+post-warmup draws per chain=500, total post-warmup draws=1000.
+
+         mean se_mean   sd    2.5%     25%     50%     75%   97.5% n_eff Rhat
+a        9.23    0.01 0.13    8.96    9.13    9.22    9.32    9.48   331 1.00
+bAR      0.39    0.01 0.13    0.14    0.31    0.39    0.48    0.64   371 1.00
+bA      -1.95    0.01 0.23   -2.37   -2.11   -1.96   -1.79   -1.50   350 1.01
+bR      -0.21    0.00 0.07   -0.34   -0.26   -0.20   -0.15   -0.07   344 1.00
+sigma    0.95    0.00 0.05    0.86    0.91    0.95    0.99    1.07   703 1.00
+lp__  -245.72    0.07 1.50 -249.18 -246.50 -245.45 -244.65 -243.70   496 1.00
+
+Samples were drawn using NUTS(diag_e) at Sun May 24 15:38:35 2020.
+For each parameter, n_eff is a crude measure of effective sample size,
+and Rhat is the potential scale reduction factor on split chains (at 
+convergence, Rhat=1).
 
 ```{r}
 dat3 <- list(N = nrow(dd2),
@@ -93,10 +162,149 @@ fit2 <- sampling(m,
               chains = 2,
               cores = 2)
 ```
+Show in New WindowClear OutputExpand/Collapse Output
+starting worker pid=22352 on localhost:11928 at 15:38:33.837
+starting worker pid=22366 on localhost:11928 at 15:38:34.021
+
+SAMPLING FOR MODEL 'stan-56cc1365f2fe' NOW (CHAIN 1).
+Chain 1: 
+Chain 1: Gradient evaluation took 4.9e-05 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.49 seconds.
+Chain 1: Adjust your expectations accordingly!
+Chain 1: 
+Chain 1: 
+Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
+Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
+Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
+Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
+Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
+Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
+Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
+Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
+
+SAMPLING FOR MODEL 'stan-56cc1365f2fe' NOW (CHAIN 2).
+Chain 2: 
+Chain 2: Gradient evaluation took 3.7e-05 seconds
+Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.37 seconds.
+Chain 2: Adjust your expectations accordingly!
+Chain 2: 
+Chain 2: 
+Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
+Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
+Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
+Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
+Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
+Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
+Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
+Chain 1: 
+Chain 1:  Elapsed Time: 0.124495 seconds (Warm-up)
+Chain 1:                0.092292 seconds (Sampling)
+Chain 1:                0.216787 seconds (Total)
+Chain 1: 
+Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
+Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
+Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
+Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
+Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
+Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
+Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
+Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
+Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
+Chain 2: 
+Chain 2:  Elapsed Time: 0.13124 seconds (Warm-up)
+Chain 2:                0.123725 seconds (Sampling)
+Chain 2:                0.254965 seconds (Total)
+Chain 2: 
+Show in New WindowClear OutputExpand/Collapse Output
+Inference for Stan model: stan-56cc1365f2fe.
+2 chains, each with iter=1000; warmup=500; thin=1; 
+post-warmup draws per chain=500, total post-warmup draws=1000.
+
+         mean se_mean   sd    2.5%     25%     50%     75%   97.5% n_eff Rhat
+a        9.23    0.01 0.13    8.96    9.13    9.22    9.32    9.48   331 1.00
+bAR      0.39    0.01 0.13    0.14    0.31    0.39    0.48    0.64   371 1.00
+bA      -1.95    0.01 0.23   -2.37   -2.11   -1.96   -1.79   -1.50   350 1.01
+bR      -0.21    0.00 0.07   -0.34   -0.26   -0.20   -0.15   -0.07   344 1.00
+sigma    0.95    0.00 0.05    0.86    0.91    0.95    0.99    1.07   703 1.00
+lp__  -245.72    0.07 1.50 -249.18 -246.50 -245.45 -244.65 -243.70   496 1.00
+
+Samples were drawn using NUTS(diag_e) at Sun May 24 15:38:35 2020.
+For each parameter, n_eff is a crude measure of effective sample size,
+and Rhat is the potential scale reduction factor on split chains (at 
+convergence, Rhat=1).
+Show in New WindowClear OutputExpand/Collapse Output
+starting worker pid=22382 on localhost:11928 at 15:38:46.636
+starting worker pid=22396 on localhost:11928 at 15:38:46.823
+
+SAMPLING FOR MODEL 'stan-56cc1365f2fe' NOW (CHAIN 1).
+Chain 1: 
+Chain 1: Gradient evaluation took 4.3e-05 seconds
+Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.43 seconds.
+Chain 1: Adjust your expectations accordingly!
+Chain 1: 
+Chain 1: 
+Chain 1: Iteration:   1 / 1000 [  0%]  (Warmup)
+Chain 1: Iteration: 100 / 1000 [ 10%]  (Warmup)
+Chain 1: Iteration: 200 / 1000 [ 20%]  (Warmup)
+Chain 1: Iteration: 300 / 1000 [ 30%]  (Warmup)
+Chain 1: Iteration: 400 / 1000 [ 40%]  (Warmup)
+
+SAMPLING FOR MODEL 'stan-56cc1365f2fe' NOW (CHAIN 2).
+Chain 2: 
+Chain 2: Gradient evaluation took 3.3e-05 seconds
+Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.33 seconds.
+Chain 2: Adjust your expectations accordingly!
+Chain 2: 
+Chain 2: 
+Chain 2: Iteration:   1 / 1000 [  0%]  (Warmup)
+Chain 1: Iteration: 500 / 1000 [ 50%]  (Warmup)
+Chain 1: Iteration: 501 / 1000 [ 50%]  (Sampling)
+Chain 2: Iteration: 100 / 1000 [ 10%]  (Warmup)
+Chain 1: Iteration: 600 / 1000 [ 60%]  (Sampling)
+Chain 2: Iteration: 200 / 1000 [ 20%]  (Warmup)
+Chain 1: Iteration: 700 / 1000 [ 70%]  (Sampling)
+Chain 2: Iteration: 300 / 1000 [ 30%]  (Warmup)
+Chain 1: Iteration: 800 / 1000 [ 80%]  (Sampling)
+Chain 2: Iteration: 400 / 1000 [ 40%]  (Warmup)
+Chain 1: Iteration: 900 / 1000 [ 90%]  (Sampling)
+Chain 2: Iteration: 500 / 1000 [ 50%]  (Warmup)
+Chain 2: Iteration: 501 / 1000 [ 50%]  (Sampling)
+Chain 1: Iteration: 1000 / 1000 [100%]  (Sampling)
+Chain 1: 
+Chain 1:  Elapsed Time: 0.132652 seconds (Warm-up)
+Chain 1:                0.121986 seconds (Sampling)
+Chain 1:                0.254638 seconds (Total)
+Chain 1: 
+Chain 2: Iteration: 600 / 1000 [ 60%]  (Sampling)
+Chain 2: Iteration: 700 / 1000 [ 70%]  (Sampling)
+Chain 2: Iteration: 800 / 1000 [ 80%]  (Sampling)
+Chain 2: Iteration: 900 / 1000 [ 90%]  (Sampling)
+Chain 2: Iteration: 1000 / 1000 [100%]  (Sampling)
+Chain 2: 
+Chain 2:  Elapsed Time: 0.130266 seconds (Warm-up)
+Chain 2:                0.114211 seconds (Sampling)
+Chain 2:                0.244477 seconds (Total)
+Chain 2: 
 
 ```{r}
 print(fit2)
 ```
+Inference for Stan model: stan-56cc1365f2fe.
+2 chains, each with iter=1000; warmup=500; thin=1; 
+post-warmup draws per chain=500, total post-warmup draws=1000.
+
+         mean se_mean   sd    2.5%     25%     50%     75%   97.5% n_eff Rhat
+a        9.22    0.01 0.15    8.94    9.13    9.23    9.32    9.52   408 1.00
+bAR      0.39    0.01 0.14    0.12    0.30    0.39    0.47    0.69   428 1.00
+bA      -1.95    0.01 0.24   -2.43   -2.11   -1.94   -1.79   -1.49   391 1.00
+bR      -0.20    0.00 0.08   -0.37   -0.26   -0.20   -0.14   -0.04   432 1.00
+sigma    0.95    0.00 0.05    0.85    0.91    0.95    0.98    1.06   665 1.00
+lp__  -245.95    0.09 1.62 -249.97 -246.88 -245.68 -244.72 -243.71   335 1.01
+
+Samples were drawn using NUTS(diag_e) at Sun May 24 15:38:48 2020.
+For each parameter, n_eff is a crude measure of effective sample size,
+and Rhat is the potential scale reduction factor on split chains (at 
+convergence, Rhat=1).
 
 It can be seen that the results of fit1 and fit2 do not have much difference, which indicates that the data of Seychelles does not influence a lot on the relation between ruggedness and economy. Therefore, we can conclude that the effect of ruggedness does not depend upon continent.
 
