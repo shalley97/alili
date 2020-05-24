@@ -1,0 +1,576 @@
+---
+title: "Assignment_4"
+output:
+  html_document:
+    toc: yes
+---
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(mc.cores = parallel::detectCores())
+library(rethinking)
+library(dplyr)
+library(tidyr)
+library(rstan)
+library(ggplot2)
+library(ggthemes)
+library(readxl)
+rstan_options(auto_write = TRUE)
+```
+
+```{r}
+data(rugged)
+d <- rugged
+d <-transform(d,log_gdp=log(rgdppc_2000))
+dd <- d[ complete.cases(d$rgdppc_2000) , ]
+dd <-transform(dd,ar=cont_africa*rugged)
+dd2 <-subset(dd,isocode!="Seychelles")
+```
+
+# Question 1
+##(a)
+Compare the fitting result of the data without Seychelles with that of full data.
+First, we build a regression model for the variables. Dependent variable is log_gdp, while independent variables are rugged, cont_africa and ar. The independent variable ar means cont_africa*rugged.
+```{stan output.var=m}
+data {
+  int N;
+  vector[N] log_gdp;
+  vector[N] rugged;
+  vector[N] cont_africa;
+  vector[N] ar;
+}
+parameters {
+  real a;
+  real bAR;
+  real bA;
+  real bR;
+  real<lower=0> sigma;
+}
+model {
+  vector[N] mu = a + cont_africa * bA + rugged * bR + ar*bAR;
+  target += normal_lpdf(log_gdp | mu, sigma);
+  target += normal_lpdf(a | 10, 10);
+  target += normal_lpdf(bA | 0, 10);
+  target += normal_lpdf(bR | 0, 10);
+  target += normal_lpdf(bAR | 0, 10);
+  target += exponential_lpdf(sigma | 1);
+}
+```
+
+```{r}
+dat2 <- list(N = nrow(dd),
+             rugged=dd$rugged,
+             cont_africa=dd$cont_africa,
+             ar=dd$ar,
+             log_gdp = dd$log_gdp)
+```
+
+Then, we explore the relation between the variables with the full data.
+```{r}
+fit1 <- sampling(m,
+              data = dat2,
+              iter = 1000,
+              chains = 2,
+              cores = 2)
+```
+
+```{r}
+print(fit1)
+```
+
+```{r}
+dat3 <- list(N = nrow(dd2),
+             rugged=dd2$rugged,
+             cont_africa=dd2$cont_africa,
+             ar=dd2$ar,
+             log_gdp = dd2$log_gdp)
+```
+
+Then, we explore the relation between the variables with the data excluding Seychelles.
+```{r}
+fit2 <- sampling(m,
+              data = dat3,
+              iter = 1000,
+              chains = 2,
+              cores = 2)
+```
+
+```{r}
+print(fit2)
+```
+
+It can be seen that the results of fit1 and fit2 do not have much difference, which indicates that the data of Seychelles does not influence a lot on the relation between ruggedness and economy. Therefore, we can conclude that the effect of ruggedness does not depend upon continent.
+
+##(b)
+As shown below, the effect of ruggedness does not depend upon continent. The relationship between rugged and economy does not change a lot.
+```{r}
+plot(dd2$rugged,dd2$log_gdp)
+```
+
+```{r}
+plot(dd$rugged,dd$log_gdp)
+```
+```{r}
+ggplot( data= dd, aes(x = rugged, y = log_gdp,colour=cont_africa)) + geom_point() +stat_smooth(method = "lm", col = "dodgerblue3")
+```
+
+```{r}
+ggplot( data= dd2, aes(x = rugged, y = log_gdp,colour=cont_africa)) + geom_point() +stat_smooth(method = "lm", col = "dodgerblue3")
+```
+
+##(c)
+model1:yi~normal(mui,sigma),mui=a+br*ri
+```{stan output.var=m1}
+data {
+  int N;
+  vector[N] log_gdp;
+  vector[N] rugged;
+}
+parameters {
+  real a;
+  real bR;
+  real<lower=0> sigma;
+}
+model {
+  vector[N] mu = a + rugged * bR;
+  target += normal_lpdf(log_gdp | mu, sigma);
+  target += normal_lpdf(a | 10, 10);
+  target += normal_lpdf(bR | 0, 10);
+  target += exponential_lpdf(sigma | 1);
+}
+```
+
+```{r}
+dat4 <- list(N = nrow(dd2),
+             rugged=dd2$rugged,
+             log_gdp = dd2$log_gdp)
+```
+
+```{r}
+fit3 <- sampling(m1,
+              data = dat4,
+              iter = 1000,
+              chains = 2,
+              cores = 2)
+```
+
+```{r}
+print(fit3)
+```
+```{r}
+post1<-extract.samples(fit3,n=1000)
+n_samples <- 1000
+ll1 <- sapply( 1:n_samples ,
+    function(s) {
+    mu <- post1$a[s] + post1$bR[s]*dd2$rugged
+})
+n_cases <- nrow(dd2)
+lppd1 <- sapply( 1:n_cases , function(i) log_sum_exp(ll1[i,]) - log(n_samples) )
+pWAIC1 <- sapply( 1:n_cases , function(i) var(ll1[i,]) )
+```
+
+```{r}
+-2*( sum(lppd1) - sum(pWAIC1) )
+```
+
+```{r}
+waic_vec1 <- -2*( lppd1 - pWAIC1 ) 
+sqrt( n_cases*var(waic_vec1) )
+```
+```{r}
+model1 <- lm(log_gdp~rugged,data=dd2)
+```
+
+```{r}
+WAIC(model1)
+```
+
+model2:yi~Normal(mui,sigma),mui=a+bA*Ai +bR*Ri
+```{stan output.var=m2}
+data {
+  int N;
+  vector[N] log_gdp;
+  vector[N] rugged;
+  vector[N] cont_africa;
+}
+parameters {
+  real a;
+  real bA;
+  real bR;
+  real<lower=0> sigma;
+}
+model {
+  vector[N] mu = a + cont_africa * bA + rugged * bR ;
+  target += normal_lpdf(log_gdp | mu, sigma);
+  target += normal_lpdf(a | 10, 10);
+  target += normal_lpdf(bA | 0, 10);
+  target += normal_lpdf(bR | 0, 10);
+  target += exponential_lpdf(sigma | 1);
+}
+```
+
+```{r}
+dat5 <- list(N = nrow(dd2),
+             rugged=dd2$rugged,
+             cont_africa=dd2$cont_africa,
+             log_gdp = dd2$log_gdp)
+```
+
+```{r}
+fit4 <- sampling(m2,
+              data = dat5,
+              iter = 1000,
+              chains = 2,
+              cores = 2)
+```
+
+```{r}
+print(fit4)
+```
+```{r}
+post2<-extract.samples(fit4,n=1000)
+n_samples2 <- 1000
+ll2 <- sapply( 1:n_samples2 ,
+    function(s) {
+    mu <- post2$a[s] + post2$bR[s]*dd2$rugged+ post2$bA[s]*dd2$cont_africa
+})
+n_cases2 <- nrow(dd2)
+lppd2 <- sapply( 1:n_cases2 , function(i) log_sum_exp(ll2[i,]) - log(n_samples2) )
+pWAIC2 <- sapply( 1:n_cases2 , function(i) var(ll2[i,]) )
+```
+
+```{r}
+-2*( sum(lppd2) - sum(pWAIC2) )
+```
+
+```{r}
+waic_vec2 <- -2*( lppd2 - pWAIC2 ) 
+sqrt( n_cases2*var(waic_vec2) )
+```
+```{r}
+model2 <- lm(dd2$log_gdp~dd2$rugged+dd2$cont_africa)
+```
+
+```{r}
+WAIC(model2)
+```
+
+model3:yi~Normal(mui,sigma), mui=a+bA*Ai+bR*Ri+bAR*Ai*Ri
+Model 3 is the same as the model built above, with the code named as m.
+```{r}
+dat6 <- list(N = nrow(dd2),
+             rugged=dd2$rugged,
+             cont_africa=dd2$cont_africa,
+             ar=dd2$ar,
+             log_gdp = dd2$log_gdp)
+```
+
+```{r}
+fit5 <- sampling(m,
+              data = dat6,
+              iter = 1000,
+              chains = 2,
+              cores = 2)
+```
+```{r}
+print(fit5)
+```
+```{r}
+post3<-extract.samples(fit5,n=1000)
+n_samples3 <- 1000
+ll3 <- sapply( 1:n_samples3 ,
+    function(s) {
+    mu <- post3$a[s] + post3$bR[s]*dd2$rugged+ post3$bA[s]*dd2$cont_africa+ post3$bAR[s]*dd2$ar
+})
+n_cases3 <- nrow(dd2)
+lppd3 <- sapply( 1:n_cases3 , function(i) log_sum_exp(ll3[i,]) - log(n_samples3) )
+pWAIC3 <- sapply( 1:n_cases3 , function(i) var(ll3[i,]) )
+```
+
+```{r}
+-2*( sum(lppd3) - sum(pWAIC3) )
+```
+
+```{r}
+waic_vec3 <- -2*( lppd3 - pWAIC3 ) 
+sqrt( n_cases3*var(waic_vec3) )
+```
+```{r}
+model3 <- lm(dd2$log_gdp~dd2$rugged+dd2$cont_africa+dd2$ar)
+```
+
+```{r}
+WAIC(model3)
+```
+As is shown above, model1, model2 and model3 have WAIC values of 538, 474 and 467 respectively. Because the model with the least WAIC value is the best model, so model3 is the fittest model we should choose.
+
+#(c)
+```{r}
+ai <- rnorm(170)*2+1 ## simulated data 
+ri <- rnorm(170)*2+1 ## simulated data 
+ari <- rnorm(170)*2+1 ## simulated data 
+n.rep <- 10000; n.accept <- 0
+
+theta <- matrix(0,2,n.rep) ## storage for sim. values 
+llc0 <- sum(dnorm(ai,mean=theta[1,1],sd=exp(theta[2,1]),log=TRUE),dnorm(ri,mean=theta[1,1],sd=exp(theta[2,1]),log=TRUE),dnorm(ari,mean=theta[1,1],sd=exp(theta[2,1]),log=TRUE)) 
+
+for (i in 2:n.rep) { ## The MH loop
+  theta[,i] <- theta[,i-1] + rt(2,df=3)*.5 ## proposal 
+  llc1 <- sum(dnorm(ai,mean=theta[1,i],
+  sd=exp(theta[2,i]),log=TRUE),dnorm(ri,mean=theta[1,i],
+  sd=exp(theta[2,i]),log=TRUE),dnorm(ari,mean=theta[1,i],
+  sd=exp(theta[2,i]),log=TRUE))
+  if (exp(llc1-llc0)>runif(1)) { ## MH accept/reject
+  llc1 <- llc1; n.accept <- n.accept + 1 ## accept 
+  } else theta[,i] <- theta[,i-1] ## reject
+}
+
+n.accept/n.rep ## proportion of proposals accepted
+
+layout(matrix(c(1,2,1,2,3,4),2,3))
+plot(1:n.rep,theta[1,],type="l",xlab="iteration",
+     ylab=expression(mu))
+plot(1:n.rep,exp(theta[2,]),type="l",xlab="iteration",
+     ylab=expression(sigma))
+hist(theta[1,-(1:1000)],main="",xlab=expression(mu))
+hist(exp(theta[2,-(1:1000)]),main="",
+     xlab=expression(sigma))
+```
+
+##Question 2
+```{stan output.var=m4}
+data{
+   int<lower=1> N;
+}
+parameters{
+   real a;
+   real b;
+}
+model{
+   b~cauchy(0,1);
+   a~normal(0,1);
+}
+```
+
+```{r}
+datq2 <- list(N = 1000)
+```
+
+```{r}
+fit6 <- sampling(m4, data = datq2, iter = 1000, chains = 2, cores = 2)
+```
+
+```{r}
+structure("m4", package = "rstan")
+postq2 <- as.data.frame(fit6) %>% select(a, b)
+print(postq2)
+```
+```{r}
+print(fit6)
+```
+
+##Question 3
+```{r}
+library(MASS)
+data(eagles)
+d3 <- eagles
+```
+#(a)
+```{stan output.var=m5}
+data {
+  int N;
+  int N_P;
+  int N_A;
+  int N_V;
+  int N_y[N];
+  int N_ni[N];
+  int<lower=0,upper=N_P> P[N];
+  int<lower=0,upper=N_A> A[N];
+  int<lower=0,upper=N_V> V[N];
+}
+parameters {
+  real a;
+  real bP;
+  real bV;
+  real bA;
+}
+model {
+  vector[N] p_y;
+  for (i in 1:N) p_y[i] =  1/(1/(10^(a + bP*P[i]+bV*V[i]+bA*A[i]))+1);
+  target += binomial_logit_lpmf(N_y | N_ni, p_y);
+  target += normal_lpdf(a | 0, 10);
+  target += normal_lpdf(bP | 0, 5);
+  target += normal_lpdf(bV | 0, 5);
+  target += normal_lpdf(bA | 0, 5);
+}
+generated quantities {
+  vector[N] log_lik;
+  {
+  vector[N] p_y;
+  for(n in 1:N) {
+    p_y[n] =  1/(1/(10^(a + bP*P[n]+bV*V[n]+bA*A[n]))+1);
+    log_lik[n] = binomial_logit_lpmf(N_y[n] | N_ni[n],p_y[n]);
+  }
+  }
+}
+```
+
+```{r}
+datq3_1 <- list(
+  N = nrow(d3),
+  N_ni = d3$n,
+  N_y = d3$y,
+  N_P = length(unique(d3$P)),
+  N_A = length(unique(d3$A)),
+  N_V = length(unique(d3$V)),
+  P = as.integer(d3$P),
+  A = as.integer(d3$A),
+  V = as.integer(d3$V)
+)
+```
+
+```{r}
+fit7 <- sampling(m5,
+              data = datq3_1,
+              iter = 1000,
+              chains = 2,
+              cores = 2)
+```
+```{r}
+print(fit7)
+```
+As is shown above, log(p/(1-p))=4.17-5.87*P+6.72*V-2.55*A.
+
+#(b)
+#The result of the regression indicates that the possibility of success when stealing without any outside limit is 99.99%, the possibility of success will increase by 5.87% if the size of the pirate is large, the possibility of success will decrease by 6.72% if the size of the victim is large, and the possibility of success will increase by 2.55% if the pirate is an adult.
+```{r}
+postm5 <- as.data.frame(fit7)
+f_mu <- function(P,V,A) plogis(1/(1/(10^(postm5$a + postm5$bP*P+postm5$bV*V+postm5$bA*A))+1))
+p_y_hat <- mapply(f_mu, P = as.integer(d3$P),V = as.integer(d3$V), A = as.integer(d3$A))
+```
+
+# Get expectation and 89% intervals of the expectation.
+```{r}
+d3 <- 
+  d3 %>%
+  mutate(p_y = y / n,
+         p_hat_mean = colMeans(p_y_hat),
+         p_hat_hpdi_l = apply(p_y_hat, 2, rethinking::HPDI)[1,],
+         p_hat_hpdi_h = apply(p_y_hat, 2, rethinking::HPDI)[2,])
+```
+
+# Get 89% intervals of simulated samples
+```{r}
+f_mu <- function(P,V,A) rbinom(n = 1e3, size = 18, prob = plogis(1/(1/(10^(postm5$a + postm5$bP*P+postm5$bV*V+postm5$bA*A))+1)))
+n_y_sim <- mapply(f_mu, P = as.integer(d3$P),V = as.integer(d3$V), A = as.integer(d3$A))
+p_y_sim <- n_y_sim / 18
+```
+
+```{r}
+d3 <- d3 %>%
+  mutate(p_sim_mean = colMeans(p_y_sim),
+         p_sim_hpdi_l = apply(p_y_sim, 2, rethinking::HPDI)[1,],
+         p_sim_hpdi_h = apply(p_y_sim, 2, rethinking::HPDI)[2,])
+```
+
+```{r}
+ggplot(d3)+geom_point(aes(x = P, y = p_y), color = 'dodgerblue')+geom_line(aes(x = P, y = p_y), color = 'dodgerblue')+geom_segment(aes(x = P, xend = P, y = p_hat_hpdi_l, yend = p_hat_hpdi_h))+geom_point(aes(x = P, y = p_hat_mean), shape = 21, fill = 'white')+geom_point(aes(x =P, y = p_sim_hpdi_l), shape = 3)+geom_point(aes(x = P, y = p_sim_hpdi_h), shape = 3)+scale_y_continuous(limits = c(0, 1))+theme(panel.border = element_rect(colour = "gray90", fill=NA, size=1),
+        panel.spacing.x = unit(-0.5, "mm"),
+        panel.spacing.y = unit(2, "lines"))+labs(x = 'Size of pirate', y = 'Probability of success')
+```
+```{r}
+ggplot(d3)+geom_point(aes(x = V, y = p_y), color = 'dodgerblue')+geom_line(aes(x = V, y = p_y), color = 'dodgerblue')+geom_segment(aes(x = V, xend = V, y = p_hat_hpdi_l, yend = p_hat_hpdi_h))+geom_point(aes(x = V, y = p_hat_mean), shape = 21, fill = 'white')+geom_point(aes(x =V, y = p_sim_hpdi_l), shape = 3)+geom_point(aes(x = V, y = p_sim_hpdi_h), shape = 3)+scale_y_continuous(limits = c(0, 1))+theme(panel.border = element_rect(colour = "gray90", fill=NA, size=1),
+        panel.spacing.x = unit(-0.5, "mm"),
+        panel.spacing.y = unit(2, "lines"))+labs(x = 'Size of victim', y = 'Probability of success')
+```
+```{r}
+ggplot(d3)+geom_point(aes(x = A, y = p_y), color = 'dodgerblue')+geom_line(aes(x = A, y = p_y), color = 'dodgerblue')+geom_segment(aes(x = A, xend = A, y = p_hat_hpdi_l, yend = p_hat_hpdi_h))+geom_point(aes(x = A, y = p_hat_mean), shape = 21, fill = 'white')+geom_point(aes(x =A, y = p_sim_hpdi_l), shape = 3)+geom_point(aes(x = A, y = p_sim_hpdi_h), shape = 3)+scale_y_continuous(limits = c(0, 1))+theme(panel.border = element_rect(colour = "gray90", fill=NA, size=1),
+        panel.spacing.x = unit(-0.5, "mm"),
+        panel.spacing.y = unit(2, "lines"))+labs(x = 'Adult or not', y = 'Probability of success')
+```
+#(c)
+We build a new model with interaction variable between pirate's size and age added to the previous model which is now log(pi/(1-pi))=a+bP*Pi+bV*Vi+bA*Ai+bPA*PAi.
+```{stan output.var=m6}
+data {
+  int N;
+  int N_P;
+  int N_A;
+  int N_V;
+  int N_y[N];
+  int N_ni[N];
+  int<lower=0,upper=N_P> P[N];
+  int<lower=0,upper=N_A> A[N];
+  int<lower=0,upper=N_V> V[N];
+}
+parameters {
+  real a;
+  real bP;
+  real bV;
+  real bA;
+  real bPA;
+}
+model {
+  vector[N] p_y;
+  for (i in 1:N) p_y[i] =  1/(1/(10^(a + bP*P[i]+bV*V[i]+bA*A[i]+bPA*P[i]*A[i]))+1);
+  target += binomial_logit_lpmf(N_y | N_ni, p_y);
+  target += normal_lpdf(a | 0, 10);
+  target += normal_lpdf(bP | 0, 5);
+  target += normal_lpdf(bV | 0, 5);
+  target += normal_lpdf(bA | 0, 5);
+}
+generated quantities {
+  vector[N] log_lik;
+  {
+  vector[N] p_y;
+  for(n in 1:N) {
+    p_y[n] =  1/(1/(10^(a + bP*P[n]+bV*V[n]+bA*A[n]+bPA*P[n]*A[n]))+1);
+    log_lik[n] = binomial_logit_lpmf(N_y[n] | N_ni[n],p_y[n]);
+  }
+  }
+}
+```
+
+```{r}
+datq3_2 <- list(
+  N = nrow(d3),
+  N_ni = d3$n,
+  N_y = d3$y,
+  N_P = length(unique(d3$P)),
+  N_A = length(unique(d3$A)),
+  N_V = length(unique(d3$V)),
+  P = as.integer(d3$P),
+  A = as.integer(d3$A),
+  V = as.integer(d3$V)
+)
+```
+
+```{r}
+fit8 <- sampling(m6,
+              data = datq3_2,
+              iter = 1000,
+              chains = 2,
+              cores = 2)
+```
+```{r}
+print(fit8)
+```
+As is shown above, the new estimated model is log(p/(1-p))=6-0.74*P+7.95*V+3.05*A-9.77*P*A. The result indicates that the possibility of successful stealing will increase by 0.74% if the pirate has a large body size, the possibility of successful stealing will decrease by 7.95% if the victim has a large body size, and the interaction effect between pirate body size and pirate adult situation can influence the stealing successfulness probability by raising the probability on 9.77%.
+Then, we compare the new model to the previous model with WAIC.
+```{r}
+library(loo)
+```
+```{r}
+log_lik_m5 <- extract_log_lik(fit7, merge_chains = FALSE)
+r_eff        <- relative_eff(exp(log_lik_m5))
+loo_m5     <- loo(log_lik_m5, r_eff = r_eff, cores = 2)
+waicm5 <- waic(log_lik_m5)
+```
+```{r}
+log_lik_m6 <- extract_log_lik(fit8, merge_chains = FALSE)
+r_eff        <- relative_eff(exp(log_lik_m6))
+loo_m6     <- loo(log_lik_m6, r_eff = r_eff, cores = 2)
+waicm6 <- waic(log_lik_m6)
+```
+```{r}
+loo_compare(waicm5, waicm6)
+```
+By comparing the WAIC values of the two model, we can conclude that the new model which contains the interaction variable between P and A is better.
